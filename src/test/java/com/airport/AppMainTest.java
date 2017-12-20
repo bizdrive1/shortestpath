@@ -6,6 +6,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
+
 import com.airport.AppMain;
 
 public class AppMainTest {
@@ -23,6 +25,34 @@ public class AppMainTest {
 	@Test
 	public void testAppMain() throws Exception {
 		
+		StringBuilder sb = new StringBuilder();
+		sb.append(buildConveyor());
+		sb.append("# Section: Bags\n" + 
+				"0001 Concourse_A_Ticketing UA12\n" + 
+				"0002 A5 UA17\n" + 
+				"0003 A2 UA10\n" + 
+				"0004 A8 UA18\n" + 
+				"0005 A7 ARRIVAL\n");
+		
+		AppMain app = new AppMain(new ByteArrayInputStream(sb.toString().getBytes()));
+		System.out.println(app.process());
+	}
+	
+	@Test
+	public void testAppMainInvalidFlightId() throws Exception {
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(buildConveyor());
+		sb.append("# Section: Bags\n" + 
+				"0004 A8 UA9\n" +
+				"0005 A7 ARRIVAL\n");
+		
+		AppMain app = new AppMain(new ByteArrayInputStream(sb.toString().getBytes()));
+		String str = app.process();
+		assertTrue(str.contains("invalid flight id"));
+	}
+	
+	private String buildConveyor() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("# Section: Conveyor System\n" + 
 				"Concourse_A_Ticketing A5 5\n" + 
@@ -45,15 +75,7 @@ public class AppMainTest {
 				"UA15 A2 JFK 10:00\n" + 
 				"UA16 A3 JFK 09:00\n" + 
 				"UA17 A4 MHT 09:15\n" + 
-				"UA18 A5 LAX 10:15\n" + 
-				"# Section: Bags\n" + 
-				"0001 Concourse_A_Ticketing UA12\n" + 
-				"0002 A5 UA17\n" + 
-				"0003 A2 UA10\n" + 
-				"0004 A8 UA18\n" + 
-				"0005 A7 ARRIVAL\n");
-		
-		AppMain app = new AppMain(new ByteArrayInputStream(sb.toString().getBytes()));
-		app.process();
+				"UA18 A5 LAX 10:15\n");
+		return sb.toString();
 	}
 }

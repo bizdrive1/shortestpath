@@ -24,10 +24,11 @@ public class AppMain {
 		this.in = in;
 	}
 	
-	public void process() {
+	public String process() {
 
 		Map<String, Departure> departures = new HashMap<String, Departure>();
 		List<Baggage> baggages = new ArrayList<Baggage>();
+		StringBuilder sb = new StringBuilder();
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			int cnt = 0;
@@ -53,9 +54,10 @@ public class AppMain {
 
 					if (!strs[2].equalsIgnoreCase("ARRIVAL")) {
 						Departure departure = departures.get(strs[2]);
-						departure.addBaggage(baggage);
+						if (departure != null) {
+							departure.addBaggage(baggage);
+						}
 					}
-
 					baggages.add(baggage);
 				}
 
@@ -71,13 +73,22 @@ public class AppMain {
 					end = "BaggageClaim";
 				} else {
 					Departure departure = departures.get(baggage.getFlightId());
-					end = departure.getFlightGate();
+					if (departure != null) {
+						end = departure.getFlightGate();
+					} else {
+						sb.append(baggage.getBaggageNumber() + " has invalid flight id.");
+						continue;
+					}
 				}
 
 				int totalTime = conveyorService.findPath(baggage.getEntryPoint(), end);
-				System.out.println(
-						baggage.getBaggageNumber() + " " + conveyorService.showPath(end) + " : " + totalTime);
-
+				if (totalTime == Integer.MAX_VALUE) {
+					sb.append(baggage.getBaggageNumber() + " : No Path\n");
+				} else if (totalTime == 0) {
+					sb.append(baggage.getBaggageNumber() + " : End Node doesn't exist.\n");
+				} else {
+					sb.append(baggage.getBaggageNumber() + " " + conveyorService.showPath(end) + " : " + totalTime + "\n");
+				}
 				Map<String, Node> nodeMap = conveyorService.getNodeMap();
 				Collection<Node> values = nodeMap.values();
 
@@ -89,6 +100,7 @@ public class AppMain {
 		} catch (Exception exp) {
 			exp.printStackTrace();
 		}
+		return sb.toString();
 	}
 
 	public static void main(String[] args) {
@@ -104,7 +116,7 @@ public class AppMain {
 			in = System.in;
 		}
 		AppMain appMain = new AppMain(in);
-		appMain.process();
+		System.out.println(appMain.process());
 	}
 
 }
